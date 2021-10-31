@@ -1,0 +1,8 @@
+Sources:
+
+https://www.zweitaktforum.de/wbb/forum/thread/16035654-rave-control-v2-universal-auslassteuerung-mit-modellbauservo/
+https://www.zweitaktforum.de/wbb/forum/thread/16035654-rave-control-v2-universal-auslassteuerung-mit-modellbauservo/?pageNo=4
+
+https://microcontrollerslab.com/esp32-servo-motor-web-server-arduino/
+
+http://www.iotsharing.com/2017/06/how-to-control-servo-via-arduino-esp32-webserver.html
