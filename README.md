@@ -1,2 +1,3 @@
-# RAVE2_Control
-Rave2 Control 
+## USEVC Universal Servo Exhaust Valve Control ##
+
+The funtions of this 
