@@ -23,6 +23,8 @@ UNIVERSAL SERVO EXHAUST VALVE CONTROL
 #include <SSD1306Wire.h>
 // Load preferences libary
 #include <Preferences.h>
+// // Counter
+// #include "driver/pcnt.h"
 
 // WIFI SERVER DEF
 // Set web server port number to 80
@@ -76,7 +78,7 @@ String PulsesPerRevolutionString = "";
 const int LED_PIN = 19;
 
 // Mod Interrupt Pin
-const int interrupt_PIN = 32;
+const int interrupt_PIN = 2;
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -190,8 +192,8 @@ void setup()
 
   /////////////////////////////////////////
   // FROM InterlinkKnight & el bodo es loco
-  attachInterrupt(digitalPinToInterrupt(interrupt_PIN), Pulse_Event, RISING);  // changed GPIO_3 to GPIO_2
   pinMode (interrupt_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(interrupt_PIN), Pulse_Event, RISING);  // changed GPIO_3 to GPIO_2
   delay(500);
   /////////////////////////////////////////
 
@@ -368,7 +370,7 @@ void loop()
     Serial.println("");
   }
 
-  float  t = map (analogRead (sensorPin), 0, 4095, 32, 220); 
+  float  t = map (analogRead (sensorPin), 0, 4095, 32, 220);
 
   LastTimeCycleMeasure = LastTimeWeMeasured;
     CurrentMicros = micros(); 
@@ -404,6 +406,7 @@ void loop()
     // set = map(Setpoint, 0, 1024, 6000, 10500 );  // Ausgeklammert für Feste Öffnungsdrehzahl
     rpmclose = rpmopenString.toInt() - thresholdString.toInt() ;
  
+    // TEST POTI
     RPMEngine = int(t*60);
 
     if (RPMEngine <= rpmclose)
@@ -421,6 +424,11 @@ void loop()
     Serial.print(RPMEngine);
     Serial.print(" TEST RPM: ");
     Serial.println(int(t*60));
-    //Serial.println("Loop End");
 
 }
+// void test()
+// {
+//   pcnt_set_pin()
+//   t = pcnt_get_counter_value();
+
+// }
