@@ -76,7 +76,7 @@ String PulsesPerRevolutionString = "";
 const int LED_PIN = 19;
 
 // Mod Interrupt Pin
-const int interrupt_PIN = 2;
+const int interrupt_PIN = 32;
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -108,6 +108,7 @@ unsigned long readIndex;
 unsigned long total;  
 unsigned long average; 
 /////////////////////////////////////////
+const int sensorPin = 33;
 
 void Pulse_Event()
 {
@@ -193,6 +194,9 @@ void setup()
   pinMode (interrupt_PIN, INPUT_PULLUP);
   delay(500);
   /////////////////////////////////////////
+
+  /////////////////////////////////////////
+  Serial.println("Setup Finish!");
 
 }
 void loop()
@@ -341,7 +345,7 @@ void loop()
 
         rpmclose = rpmopenString.toInt() - thresholdString.toInt();
 
-        digitalWrite(LED_PIN, HIGH); // LED ON => modified settings
+        // digitalWrite(LED_PIN, HIGH); // LED ON => modified settings
 			}
             
       // The HTTP response ends with another blank line
@@ -363,6 +367,8 @@ void loop()
     Serial.println("Client disconnected.");
     Serial.println("");
   }
+
+  float  t = map (analogRead (sensorPin), 0, 4095, 32, 220); 
 
   LastTimeCycleMeasure = LastTimeWeMeasured;
     CurrentMicros = micros(); 
@@ -397,6 +403,8 @@ void loop()
     // Setpoint = analogRead (PIN_ADJUST);  // Ausgeklammert für Feste Öffnungsdrehzahl
     // set = map(Setpoint, 0, 1024, 6000, 10500 );  // Ausgeklammert für Feste Öffnungsdrehzahl
     rpmclose = rpmopenString.toInt() - thresholdString.toInt() ;
+ 
+    RPMEngine = int(t*60);
 
     if (RPMEngine <= rpmclose)
     { // unter diesem Wert bleibt der Auslassschieber geschlossen
@@ -409,5 +417,10 @@ void loop()
       digitalWrite(LED_PIN,HIGH);  
       ObjServo.write(positionopenString.toInt());
     }
+    Serial.print("RPM: ");
+    Serial.print(RPMEngine);
+    Serial.print(" TEST RPM: ");
+    Serial.println(int(t*60));
+    //Serial.println("Loop End");
 
 }
