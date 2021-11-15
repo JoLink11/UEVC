@@ -3,7 +3,7 @@ UNIVERSAL SERVO EXHAUST VALVE CONTROL
 */
 
 /*********
-  J. Link
+  J. Link (Qu1k$1lv3r)
   supported by K. Braun
   
   Code parts from:
@@ -13,7 +13,6 @@ UNIVERSAL SERVO EXHAUST VALVE CONTROL
 
   RPM & RAVE CODE from 
   InterlinkKnight & el bodo es loco
-
 
 *********/
 
@@ -26,8 +25,6 @@ UNIVERSAL SERVO EXHAUST VALVE CONTROL
 #include <SSD1306Wire.h>
 // Load preferences libary
 #include <Preferences.h>
-// // Counter
-// #include "driver/pcnt.h"
 
 // WIFI SERVER DEF
 // Set web server port number to 80
@@ -37,7 +34,8 @@ String header;
 // Replace with your network credentials
 const char* ssid     = "USEVC_AP";
 const char* password = "USEVC_AP";
-// default setting for RAVE2
+
+// default setting for USEVC
 static const int rpm_default = 8100; // rpm to Open
 static const int threshold_default = 100; // rpm_default - threshold = closing rpm
 static const int PulsesPerRevolution_default = 1; //default ppr #### 1 für Drehzahlmessung am Pickup oder Zündspule; 6 für Drehzahlmessung an der Lima (ROTAX)
@@ -47,8 +45,14 @@ Servo ObjServo; // Make object of Servo motor from Servo library
 // Objects are made for every servo motor,we want to control through this library
 static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
 // Servo positions
-static const int positionclose_default = 145; // Servo Position Closed RAVE
-static const int positionopen_default = 90; // Servo Position Open RAVE
+static const int positionclose_default = 145; // Servo Position Closed USEVC
+static const int positionopen_default = 90; // Servo Position Open USEVC
+
+// Mod LED DEF
+const int LED_PIN = 19;
+
+// Mod Interrupt Pin
+const int interrupt_PIN = 2;
 
 // OLED DEF
 // OLED 0.96" Display SSD1306
@@ -76,12 +80,6 @@ int rpmclose;
 String positioncloseString = "";
 String positionopenString = "";
 String PulsesPerRevolutionString = "";
-
-// Mod LED DEF
-const int LED_PIN = 19;
-
-// Mod Interrupt Pin
-const int interrupt_PIN = 2;
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -112,8 +110,7 @@ unsigned long readings[numReadings];
 unsigned long readIndex;  
 unsigned long total;  
 unsigned long average; 
-/////////////////////////////////////////
-const int sensorPin = 33;
+
 
 void Pulse_Event()
 {
@@ -142,8 +139,8 @@ void setup()
 
   Serial.begin(115200);
 
-  // Pref namespace RAVE2
-  preferences.begin("RAVE2", false);
+  // Pref namespace USEVC
+  preferences.begin("USEVC", false);
   // preferences.clear(); // if you want to clear all default values uncomment this line flash , comment and flash again!
   // Load Vars
   rpmopenString = preferences.getUInt("rpm", rpm_default);
@@ -180,9 +177,7 @@ void setup()
   display.setContrast(255);
   display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
   display.setFont(ArialMT_Plain_10);
-  //display.drawString(display.getWidth() / 2, display.getHeight() / 2, "RAVE 2 CONTROL\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString );
-  //display.display();
-  display.drawString(display.getWidth() / 2, display.getHeight() / 2, "RAVE 2 CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString );
+  display.drawString(display.getWidth() / 2, display.getHeight() / 2, "USEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString );
   display.display();
   
   // Servo test
@@ -193,14 +188,11 @@ void setup()
   ObjServo.write(positioncloseString.toInt());
   delay(500);
 
-  /////////////////////////////////////////
-  // FROM InterlinkKnight & el bodo es loco
+  // FROM InterlinkKnight & el bodo es loco and midified for ESP32
   pinMode (interrupt_PIN, INPUT_PULLUP);
-  attachInterrupt(interrupt_PIN, Pulse_Event, RISING);  // changed GPIO_3 to GPIO_2
+  attachInterrupt(interrupt_PIN, Pulse_Event, RISING);
   delay(100);
-  /////////////////////////////////////////
 
-  /////////////////////////////////////////
   Serial.println("Setup Finish!");
 
 }
@@ -223,7 +215,7 @@ void loop()
           if (currentLine.length() == 0) 
 		  {
 
-      preferences.begin("RAVE2", false);
+      preferences.begin("USEVC", false);
       rpmopenString = preferences.getUInt("rpm", rpm_default);
       thresholdString = preferences.getUInt("threshold", threshold_default);
       positioncloseString= preferences.getUInt("positionclose", positionclose_default);
@@ -242,7 +234,7 @@ void loop()
 			client.println("<style>body { text-align: center; }</style>");
 			client.println("</head>");
 			client.println("<body>");
-			client.println("<h1>RAVE2 Control</h1>");
+			client.println("<h1>USEV Control</h1>");
 			client.println("<form action=\"\" method=\"get\">");
 			client.println("<label for=\"rname\">RPM:</label>");
 			client.print("<input type=\"number\" id=\"rname\" name=\"rpm\" value="+ rpmopenString +"min=7000 max=9000 step=1><br><br>");
@@ -332,8 +324,6 @@ void loop()
         {
           PulsesPerRevolutionString = preferences.getUInt("PulsesPerRevolution");
         }
-
-
         preferences.end();
 
         Serial.println("RPM: " + rpmopenString);
@@ -345,12 +335,10 @@ void loop()
         display.init();
         display.setContrast(255);
         display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "RAVE 2 CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString);
+        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "USEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString);
         display.display();
 
         rpmclose = rpmopenString.toInt() - thresholdString.toInt();
-
-        // digitalWrite(LED_PIN, HIGH); // LED ON => modified settings
 			}
             
       // The HTTP response ends with another blank line
@@ -402,9 +390,8 @@ void loop()
     {
         readIndex = 0;  
     }
-    average = total / numReadings; 
-    // Setpoint = analogRead (PIN_ADJUST);  // Ausgeklammert für Feste Öffnungsdrehzahl
-    // set = map(Setpoint, 0, 1024, 6000, 10500 );  // Ausgeklammert für Feste Öffnungsdrehzahl
+    average = total / numReadings;
+    
     rpmclose = rpmopenString.toInt() - thresholdString.toInt() ;
 
     if (RPMEngine <= rpmclose)
@@ -420,8 +407,6 @@ void loop()
     }
     Serial.print("RPM: ");
     Serial.print(RPMEngine);
-    Serial.print(" TEST RPM: ");
-    Serial.println(int(t*60));
 
 }
 ////ARDUINO CODE FOR TEST
