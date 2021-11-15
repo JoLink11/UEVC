@@ -11,6 +11,9 @@ UNIVERSAL SERVO EXHAUST VALVE CONTROL
   Complete project details at https://randomnerdtutorials.com
   especially ESP32 Servo Motor Web Server with Arduino IDE
 
+  RPM & RAVE CODE from 
+  InterlinkKnight & el bodo es loco
+
 
 *********/
 
@@ -33,7 +36,7 @@ WiFiServer server(80);
 String header;
 // Replace with your network credentials
 const char* ssid     = "USEVC_AP";
-const char* password = "Aprilia_RS_125";
+const char* password = "USEVC_AP";
 // default setting for RAVE2
 static const int rpm_default = 8100; // rpm to Open
 static const int threshold_default = 100; // rpm_default - threshold = closing rpm
@@ -193,8 +196,8 @@ void setup()
   /////////////////////////////////////////
   // FROM InterlinkKnight & el bodo es loco
   pinMode (interrupt_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interrupt_PIN), Pulse_Event, RISING);  // changed GPIO_3 to GPIO_2
-  delay(500);
+  attachInterrupt(interrupt_PIN, Pulse_Event, RISING);  // changed GPIO_3 to GPIO_2
+  delay(100);
   /////////////////////////////////////////
 
   /////////////////////////////////////////
@@ -239,7 +242,7 @@ void loop()
 			client.println("<style>body { text-align: center; }</style>");
 			client.println("</head>");
 			client.println("<body>");
-			client.println("<h1>RAVE2 Conrtol</h1>");
+			client.println("<h1>RAVE2 Control</h1>");
 			client.println("<form action=\"\" method=\"get\">");
 			client.println("<label for=\"rname\">RPM:</label>");
 			client.print("<input type=\"number\" id=\"rname\" name=\"rpm\" value="+ rpmopenString +"min=7000 max=9000 step=1><br><br>");
@@ -370,8 +373,6 @@ void loop()
     Serial.println("");
   }
 
-  float  t = map (analogRead (sensorPin), 0, 4095, 32, 220);
-
   LastTimeCycleMeasure = LastTimeWeMeasured;
     CurrentMicros = micros(); 
     if(CurrentMicros < LastTimeCycleMeasure)
@@ -405,9 +406,6 @@ void loop()
     // Setpoint = analogRead (PIN_ADJUST);  // Ausgeklammert für Feste Öffnungsdrehzahl
     // set = map(Setpoint, 0, 1024, 6000, 10500 );  // Ausgeklammert für Feste Öffnungsdrehzahl
     rpmclose = rpmopenString.toInt() - thresholdString.toInt() ;
- 
-    // TEST POTI
-    RPMEngine = int(t*60);
 
     if (RPMEngine <= rpmclose)
     { // unter diesem Wert bleibt der Auslassschieber geschlossen
@@ -426,9 +424,24 @@ void loop()
     Serial.println(int(t*60));
 
 }
-// void test()
-// {
-//   pcnt_set_pin()
-//   t = pcnt_get_counter_value();
+////ARDUINO CODE FOR TEST
+//// Connect Arduino PIN 13 with ESP PIN 2 & GND to GND
+// int sensorPin = A0;
+// int ledPin = 13;
+// int rpmPin = 2;
 
+// void setup () {
+//   pinMode(ledPin, OUTPUT);
+//   pinMode(rpmPin, OUTPUT);
+//   Serial.begin (9600);
+// }
+
+// void loop () {
+  
+// float  t = map (analogRead (sensorPin), 0, 1023, 32, 220);          
+
+//   tone (13, t);
+  
+//   Serial.print ("RPM:");
+//   Serial.println(t*60); 
 // }
