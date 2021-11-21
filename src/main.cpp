@@ -1,10 +1,10 @@
 /*
-UNIVERSAL SERVO EXHAUST VALVE CONTROL
+UNIVERSAL EXHAUST VALVE CONTROL
 */
 
 /*********
   J. Link (Qu1k$1lv3r)
-  supported by K. Braun
+  supported by Schnitzel23
   
   Code parts from:
   Rui Santos
@@ -32,21 +32,22 @@ WiFiServer server(80);
 // Variable to store the HTTP request
 String header;
 // Replace with your network credentials
-const char* ssid     = "USEVC_AP";
-const char* password = "USEVC_AP";
+const char* ssid     = "UEVC_AcPo";
+const char* password = "UEVC_AcPo";
 
-// default setting for USEVC
+// default setting for UEVC
 static const int rpm_default = 8100; // rpm to Open
 static const int threshold_default = 100; // rpm_default - threshold = closing rpm
-static const int PulsesPerRevolution_default = 1; //default ppr #### 1 für Drehzahlmessung am Pickup oder Zündspule; 6 für Drehzahlmessung an der Lima (ROTAX)
+static const int PulsesPerRev_default = 1; //default ppr #### 1 für Drehzahlmessung am Pickup oder Zündspule; 6 für Drehzahlmessung an der Lima (ROTAX)
+static const bool trans_default = 0; // default linear trans between open and close
 
 // SERVO DEF
 Servo ObjServo; // Make object of Servo motor from Servo library
 // Objects are made for every servo motor,we want to control through this library
 static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
 // Servo positions
-static const int positionclose_default = 145; // Servo Position Closed USEVC
-static const int positionopen_default = 90; // Servo Position Open USEVC
+static const int positionclose_default = 145; // Servo Position Closed UEVC
+static const int positionopen_default = 90; // Servo Position Open UEVC
 
 // Mod LED DEF
 const int LED_PIN = 19;
@@ -73,13 +74,18 @@ int position7 = 0;
 int position8 = 0;
 int position9 = 0;
 int position10 = 0;
+int position11 = 0;
+int position12 = 0;
 
 String rpmopenString = "";
 String thresholdString  = "";
 int rpmclose;
 String positioncloseString = "";
 String positionopenString = "";
-String PulsesPerRevolutionString = "";
+String PulsesPerRevString = "";
+
+int trans = 0;
+String transString = "";
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -138,23 +144,28 @@ void setup()
 {
 
   Serial.begin(115200);
+  Serial.println("START SETUP");
 
-  // Pref namespace USEVC
-  preferences.begin("USEVC", false);
-  // preferences.clear(); // if you want to clear all default values uncomment this line flash , comment and flash again!
+  // Pref namespace UEVC
+  preferences.begin("UEVC", false);
+  preferences.clear(); // if you want to clear all default values uncomment this line flash , comment and flash again!
   // Load Vars
   rpmopenString = preferences.getUInt("rpm", rpm_default);
   thresholdString = preferences.getUInt("threshold", threshold_default);
   positioncloseString = preferences.getUInt("positionclose", positionclose_default);
   positionopenString = preferences.getUInt("positionopen", positionopen_default);
-  PulsesPerRevolutionString = preferences.getUInt("PulsesPerRevolution", PulsesPerRevolution_default);
+  PulsesPerRevString = preferences.getUInt("PulsesPerRev", PulsesPerRev_default);
+  transString = preferences.getUInt("trans", trans_default);
   preferences.end();
 
+  Serial.println("SETTINGS:");
   Serial.println(rpmopenString);
   Serial.println(thresholdString);
   Serial.println(positioncloseString);
   Serial.println(positionopenString);
-  Serial.println(PulsesPerRevolutionString);
+  Serial.println(PulsesPerRevString);
+  Serial.println(transString);
+  Serial.println("SETTINGS END");
   
   // Initialize the output variables as outputs
   pinMode(LED_PIN, OUTPUT);
@@ -177,7 +188,7 @@ void setup()
   display.setContrast(255);
   display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
   display.setFont(ArialMT_Plain_10);
-  display.drawString(display.getWidth() / 2, display.getHeight() / 2, "USEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString );
+  display.drawString(display.getWidth() / 2, display.getHeight() / 2, "UEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString );
   display.display();
   
   // Servo test
@@ -215,12 +226,12 @@ void loop()
           if (currentLine.length() == 0) 
 		  {
 
-      preferences.begin("USEVC", false);
+      preferences.begin("UEVC", false);
       rpmopenString = preferences.getUInt("rpm", rpm_default);
       thresholdString = preferences.getUInt("threshold", threshold_default);
       positioncloseString= preferences.getUInt("positionclose", positionclose_default);
       positionopenString= preferences.getUInt("positionopen", positionopen_default);
-
+      transString = preferences.getUInt("trans", trans_default);
 
 			client.println("HTTP/1.1 200 OK");
 			client.println("Content-type:text/html");
@@ -234,18 +245,22 @@ void loop()
 			client.println("<style>body { text-align: center; }</style>");
 			client.println("</head>");
 			client.println("<body>");
-			client.println("<h1>USEV Control</h1>");
+			client.println("<h1>UEV Control</h1>");
 			client.println("<form action=\"\" method=\"get\">");
 			client.println("<label for=\"rname\">RPM:</label>");
-			client.print("<input type=\"number\" id=\"rname\" name=\"rpm\" value="+ rpmopenString +"min=7000 max=9000 step=1><br><br>");
+			client.print("<input type=\"number\" id=\"rname\" name=\"rpm\" value=\""+ rpmopenString +"\"min=7000 max=9000 step=1><br><br>");
 			client.println("<label for=\"tname\">Threshold:</label>");
-			client.print("<input type=\"number\" id=\"tname\" name=\"threshold\" value="+ thresholdString +"min=100 max=500 step=1><br><br>");
+			client.print("<input type=\"number\" id=\"tname\" name=\"threshold\" value=\""+ thresholdString +"\"min=100 max=500 step=1><br><br>");
       client.println("<label for=\"cname\">Servo Close Position:</label>");
-			client.print("<input type=\"number\" id=\"cname\" name=\"positionclose\" value="+ positioncloseString +"min=0 max=180 step=1><br><br>");
+			client.print("<input type=\"number\" id=\"cname\" name=\"positionclose\" value=\""+ positioncloseString +"\"min=0 max=180 step=1><br><br>");
       client.println("<label for=\"oname\">Servo Open Position:</label>");
-			client.print("<input type=\"number\" id=\"oname\" name=\"positionopen\" value="+ positionopenString +"min=0 max=180 step=1><br><br>");
+			client.print("<input type=\"number\" id=\"oname\" name=\"positionopen\" value=\""+ positionopenString +"\"min=0 max=180 step=1><br><br>");
       client.println("<label for=\"pname\">Pulse per Rev:</label>");
-			client.print("<input type=\"number\" id=\"pname\" name=\"\" value="+ PulsesPerRevolutionString +"min=1 max=999 step=1><br><br>");
+			client.print("<input type=\"number\" id=\"pname\" name=\"PPR\" value=\""+ PulsesPerRevString +"\"min=1 max=999 step=1><br><br>");
+      client.println("<label for=\"trans\">Trans Linear:</label>");
+      client.print("<input type=\"number\" id=\"trans\" name=\"trans\" value=\""+ transString +"\"min=0 max=1 step=1>");
+      client.print("<label for=\"trans\"> 0 = off | 1 = on</label><br><br>");
+      client.println("<h4>please insert all settings befor submitting</h4>");
 			client.println("<button type=\"submit\">Submit</button>");
 			client.println("</form>");
 			client.println("</body>");
@@ -254,22 +269,25 @@ void loop()
 			//GET /?value=180& HTTP/1.1
 			if(header.indexOf("GET /?rpm=") >= 0) 
 			{
-        position1 = header.indexOf('=');
-				position2 = header.indexOf('&');
-				position3 = header.indexOf('=', position1+1);
-        position4 = header.indexOf('&', position3+1);
-				position5 = header.indexOf('=', position3+1);
-        position6 = header.indexOf('&', position5+1);
-        position7 = header.indexOf('=', position5+1);
-        position8 = header.indexOf('&', position7+1);
-        position9 = header.indexOf('=', position7+1);
-        position10 = header.indexOf(' ', position9+1);
+        position1 = header.indexOf("=");
+				position2 = header.indexOf("&");
+				position3 = header.indexOf("=", position1+1);
+        position4 = header.indexOf("&", position3+1);
+				position5 = header.indexOf("=", position3+1);
+        position6 = header.indexOf("&", position5+1);
+        position7 = header.indexOf("=", position5+1);
+        position8 = header.indexOf("&", position7+1);
+        position9 = header.indexOf("=", position7+1);
+        position10 = header.indexOf("&", position9+1);
+        position11 = header.indexOf("=", position9+1);
+        position12 = header.indexOf(" ", position11+1);
 
 				rpmopenString = header.substring(position1+1, position2);
 				thresholdString = header.substring(position3+1, position4);
 				positioncloseString = header.substring(position5+1, position6);
 				positionopenString = header.substring(position7+1, position8);
-        PulsesPerRevolutionString = header.substring(position9+1, position10);
+        PulsesPerRevString = header.substring(position9+1, position10);
+        transString = header.substring(position11+1, position12);
 
 				// Rotate the servo
         // ObjServo.write(positioncloseString.toInt()); // test application
@@ -278,7 +296,8 @@ void loop()
 				Serial.println(thresholdString);
         Serial.println(positioncloseString); 
 				Serial.println(positionopenString);
-        Serial.println(PulsesPerRevolutionString);
+        Serial.println(PulsesPerRevString);
+        Serial.println(transString);
 
         if (rpmopenString.toInt() >= 6999 && rpmopenString.toInt() <= 9001)
         {
@@ -316,13 +335,22 @@ void loop()
           positionopenString = preferences.getUInt("positionopen");
         }
 
-        if (PulsesPerRevolutionString != "")
+        if (PulsesPerRevString != "")
         {
-          preferences.putUInt("PulsesPerRevolution", PulsesPerRevolutionString.toInt()); 
+          preferences.putUInt("PulsesPerRev", PulsesPerRevString.toInt()); 
         }
         else 
         {
-          PulsesPerRevolutionString = preferences.getUInt("PulsesPerRevolution");
+          PulsesPerRevString = preferences.getUInt("PulsesPerRev");
+        }
+
+        if (transString != "")
+        {
+          preferences.putUInt("trans", transString.toInt()); 
+        }
+        else 
+        {
+          transString = preferences.getUInt("trans");
         }
         preferences.end();
 
@@ -330,16 +358,17 @@ void loop()
 				Serial.println("Threshold: " + thresholdString);
         Serial.println("Close: " + positioncloseString); 
 				Serial.println("Open: " + positionopenString);
-        Serial.println("PPR: " + PulsesPerRevolutionString);
+        Serial.println("PPR: " + PulsesPerRevString);
+        Serial.println("Trans: " + transString);
                 
         display.init();
         display.setContrast(255);
         display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "USEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString);
+        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "UEV CONTROL\n\nIP: 192.168.4.1\nOpen RPM: " + rpmopenString + "\nThreshold: " + thresholdString + "\nPosition_Close: "+ positioncloseString + "\nPosition_Open: "+ positionopenString);
         display.display();
 
         rpmclose = rpmopenString.toInt() - thresholdString.toInt();
-			}
+      }
             
       // The HTTP response ends with another blank line
       client.println();
@@ -379,7 +408,7 @@ void loop()
         ZeroDebouncingExtra = 0;  
     }
     FrequencyReal = FrequencyRaw / 10000;  
-    RPMEngine = FrequencyRaw / PulsesPerRevolutionString.toInt() * 60;  
+    RPMEngine = FrequencyRaw / PulsesPerRevString.toInt() * 60;  
     RPMEngine = RPMEngine / 10000; 
     total = total - readings[readIndex];  
     readings[readIndex] = RPMEngine;  
@@ -398,19 +427,33 @@ void loop()
     { // unter diesem Wert bleibt der Auslassschieber geschlossen
       digitalWrite(LED_PIN,LOW); 
       ObjServo.write(positioncloseString.toInt());
-        
+      trans = positioncloseString.toInt();
     }
-    if (RPMEngine >= rpmopenString.toInt())
+    else if (RPMEngine > rpmclose && RPMEngine < rpmopenString.toInt())
+    {
+      if (transString.toInt() == 1)
+      { // zwischen öffnen und Schließen linearer Verlauf der Ventilöffnung
+        digitalWrite(LED_PIN,HIGH);
+        trans = int(map(RPMEngine, rpmclose, rpmopenString.toInt(), positioncloseString.toInt(), positionopenString.toInt()));
+        ObjServo.write(trans);
+      }
+    }
+    else if (RPMEngine >= rpmopenString.toInt())
     { // über diesem Wert öffnet der Auslassschieber
       digitalWrite(LED_PIN,HIGH);  
       ObjServo.write(positionopenString.toInt());
+      trans = positionopenString.toInt();
     }
-    Serial.print("RPM: ");
-    Serial.print(RPMEngine);
 
+    // Serial.print("RPM: ");
+    // Serial.print(RPMEngine);
+
+    // Serial.print(" trans: ");
+    // Serial.println(trans);  
 }
+
 ////ARDUINO CODE FOR TEST
-//// Connect Arduino PIN 13 with ESP PIN 2 & GND to GND
+//// Connect Arduino PIN 13 with ESP PIN 2 & ARDUINO GND to ESP32 GND
 // int sensorPin = A0;
 // int ledPin = 13;
 // int rpmPin = 2;
