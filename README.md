@@ -17,3 +17,4 @@ Setting changeable via Webserver:
 * Servo position opened
 * Servo position closed
 * How many pluse per Revolution
+* activate linear transition for open an close valve
