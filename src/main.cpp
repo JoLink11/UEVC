@@ -3,7 +3,7 @@ UNIVERSAL EXHAUST VALVE CONTROL
 */
 
 /*********
-  J. Link (Qu1k$1lv3r)
+  JoLink11 (Qu1k$1lv3r)
   supported by Schnitzel23
   
   Code parts from:
@@ -26,66 +26,71 @@ UNIVERSAL EXHAUST VALVE CONTROL
 // Load preferences libary
 #include <Preferences.h>
 
-// WIFI SERVER DEF
-// Set web server port number to 80
-WiFiServer server(80);
-// Variable to store the HTTP request
-String header;
-// Replace with your network credentials
-const char* ssid     = "UEVC_AcPo";
-const char* password = "UEVC_AcPo";
-
 // default setting for UEVC
+// Settings
 static const int rpm_default = 8100; // rpm to Open
 static const int threshold_default = 100; // rpm_default - threshold = closing rpm
 static const int PulsesPerRev_default = 1; //default ppr #### 1 für Drehzahlmessung am Pickup oder Zündspule; 6 für Drehzahlmessung an der Lima (ROTAX)
 static const bool trans_default = 0; // default linear trans between open and close
 
-// SERVO DEF
-Servo ObjServo; // Make object of Servo motor from Servo library
+// Servo
 // Objects are made for every servo motor,we want to control through this library
 static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
-// Servo positions
 static const int positionclose_default = 145; // Servo Position Closed UEVC
 static const int positionopen_default = 90; // Servo Position Open UEVC
 
+// WIFI 
+// Replace with your network credentials
+static const char* ssid     = "UEVC_AcPo";
+static const char* password = "UEVC_AcPo";
+
 // Mod LED DEF
-const int LED_PIN = 19;
+static const int LED_PIN = 19;
 
 // Mod Interrupt Pin
-const int interrupt_PIN = 2;
+static const int interrupt_PIN = 2;
+
+// WIFI SERVER DEF
+// Set web server port number to 80
+WiFiServer server(80);
+// Variable to store the HTTP request
+String header;
+
+// SERVO DEF
+Servo ObjServo; // Make object of Servo motor from Servo library
 
 // OLED DEF
 // OLED 0.96" Display SSD1306
 SSD1306Wire display(0x3c, SDA, SCL);
 
-// PREF DEF
+// PREF DEF (EEPROM)
 Preferences preferences;
 
 // miscellaneous DEF
 // Variables for String to Int conversion
-int position1 = 0;
-int position2 = 0;
-int position3 = 0;
-int position4 = 0;
-int position5 = 0;
-int position6 = 0;
-int position7 = 0;
-int position8 = 0;
-int position9 = 0;
-int position10 = 0;
-int position11 = 0;
-int position12 = 0;
+unsigned int position1 = 0;
+unsigned int position2 = 0;
+unsigned int position3 = 0;
+unsigned int position4 = 0;
+unsigned int position5 = 0;
+unsigned int position6 = 0;
+unsigned int position7 = 0;
+unsigned int position8 = 0;
+unsigned int position9 = 0;
+unsigned int position10 = 0;
+unsigned int position11 = 0;
+unsigned int position12 = 0;
 
 String rpmopenString = "";
 String thresholdString  = "";
-int rpmclose;
+unsigned int rpmclose;
 String positioncloseString = "";
 String positionopenString = "";
 String PulsesPerRevString = "";
-
-int trans = 0;
+unsigned int trans = 0;
 String transString = "";
+
+bool DEBUG = true;
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -445,11 +450,13 @@ void loop()
       trans = positionopenString.toInt();
     }
 
-    // Serial.print("RPM: ");
-    // Serial.print(RPMEngine);
-
-    // Serial.print(" trans: ");
-    // Serial.println(trans);  
+    if (DEBUG)
+    {
+      Serial.print("RPM: ");
+      Serial.print(RPMEngine);
+      Serial.print(" trans: ");
+      Serial.println(trans);  
+    }
 }
 
 ////ARDUINO CODE FOR TEST
