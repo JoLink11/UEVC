@@ -16,6 +16,8 @@ UNIVERSAL EXHAUST VALVE CONTROL
 
 *********/
 
+// Load Settings
+#include "UEVC_Settings.h"
 // Load Wi-Fi library
 #include <WiFi.h>
 // Load Servo libary
@@ -61,7 +63,15 @@ Servo ObjServo; // Make object of Servo motor from Servo library
 
 // OLED DEF
 // OLED 0.96" Display SSD1306
-SSD1306Wire display(0x3c, SDA, SCL);
+#ifdef ESP32_GENERIC
+  #define OLED_SDA SDA // SDA ESP32 Generic
+  #define OLED_SCL SCL // SCL ESP32 Generic
+#endif
+#ifdef WEMOSLOLIN32OLED
+  #define OLED_SDA 5 // 5 for LoLin or SDA ESP32 default
+  #define OLED_SCL 4 // 4 for LoLin or 
+#endif
+SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL);
 
 // PREF DEF (EEPROM)
 Preferences preferences;
@@ -148,7 +158,8 @@ void Pulse_Event()
 void setup()
 {
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
+  Serial.begin(921600);
   Serial.println("START SETUP");
 
   // Pref namespace UEVC
@@ -458,25 +469,3 @@ void loop()
       Serial.println(trans);  
     }
 }
-
-////ARDUINO CODE FOR TEST
-//// Connect Arduino PIN 13 with ESP PIN 2 & ARDUINO GND to ESP32 GND
-// int sensorPin = A0;
-// int ledPin = 13;
-// int rpmPin = 2;
-
-// void setup () {
-//   pinMode(ledPin, OUTPUT);
-//   pinMode(rpmPin, OUTPUT);
-//   Serial.begin (9600);
-// }
-
-// void loop () {
-  
-// float  t = map (analogRead (sensorPin), 0, 1023, 32, 220);          
-
-//   tone (13, t);
-  
-//   Serial.print ("RPM:");
-//   Serial.println(t*60); 
-// }
