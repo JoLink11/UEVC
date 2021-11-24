@@ -28,23 +28,9 @@ UNIVERSAL EXHAUST VALVE CONTROL
 // Load preferences libary
 #include <Preferences.h>
 
-// default setting for UEVC
-// Settings
-static const int rpm_default = 8100; // rpm to Open
-static const int threshold_default = 100; // rpm_default - threshold = closing rpm
-static const int PulsesPerRev_default = 1; //default ppr #### 1 für Drehzahlmessung am Pickup oder Zündspule; 6 für Drehzahlmessung an der Lima (ROTAX)
-static const bool trans_default = 0; // default linear trans between open and close
-
 // Servo
 // Objects are made for every servo motor,we want to control through this library
 static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
-static const int positionclose_default = 145; // Servo Position Closed UEVC
-static const int positionopen_default = 90; // Servo Position Open UEVC
-
-// WIFI 
-// Replace with your network credentials
-static const char* ssid     = "UEVC_AcPo";
-static const char* password = "UEVC_AcPo";
 
 // Mod LED DEF
 static const int LED_PIN = 19;
@@ -193,7 +179,7 @@ void setup()
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Setting AP (Access Point)…");
   // Remove the password parameter, if you want the AP (Access Point) to be open
-  WiFi.softAP(ssid, password);
+  WiFi.softAP(wifi_ssid, wifi_pass);
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
@@ -315,7 +301,9 @@ void loop()
         Serial.println(PulsesPerRevString);
         Serial.println(transString);
 
-        if (rpmopenString.toInt() >= 6999 && rpmopenString.toInt() <= 9001)
+        //if (rpmopenString.toInt() >= 6999 && rpmopenString.toInt() <= 9001)
+        // check if it useful with de limit of 1000 rpm
+        if (rpmopenString.toInt() >= minrpmopen)
         {
           preferences.putUInt("rpm", rpmopenString.toInt());
         }
@@ -323,8 +311,8 @@ void loop()
         {
           rpmopenString = preferences.getUInt("rpm");
         }
-
-        if (thresholdString != "")
+        // make sure there will be no negative values and useful settings
+        if (thresholdString.toInt() >= 0)
         {
           preferences.putUInt("threshold", thresholdString.toInt());
         }
