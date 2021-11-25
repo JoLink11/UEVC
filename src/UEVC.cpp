@@ -28,36 +28,36 @@ UNIVERSAL EXHAUST VALVE CONTROL
 // Load preferences libary
 #include <Preferences.h>
 
-// Servo
-// Objects are made for every servo motor,we want to control through this library
-static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
-
-// Mod LED DEF
-static const int LED_PIN = 19;
-
-// Mod Interrupt Pin
-static const int interrupt_PIN = 2;
+#ifdef ESP32_GENERIC
+  #define OLED_SDA SDA // SDA ESP32 Generic
+  #define OLED_SCL SCL // SCL ESP32 Generic
+  #define ServoGPIO 13 // define the GPIO pin with which servo is connected
+  #define LED_PIN 19 // LED for activation
+  #define interrupt_PIN 2 // REV-Signal to this PIN / PICKUP-Signal to this PIN
+#endif
+#ifdef WEMOSLOLIN32OLED
+  static const int OLED_SDA = 5; // 5 for LoLin
+  static const int OLED_SCL = 4; // 4 for LoLin
+  static const int ServoGPIO = 15; // define the GPIO pin with which servo is connected
+  static const int LED_PIN = 19; // LED for activation
+  static const int interrupt_PIN = 2; // REV-Signal to this PIN / PICKUP-Signal to this PIN
+#endif
+#ifdef DEBUG
+  //#define debug true
+  static const bool debug = true;
+#else
+  static const bool debug = false;
+#endif
 
 // WIFI SERVER DEF
-// Set web server port number to 80
-WiFiServer server(80);
-// Variable to store the HTTP request
-String header;
+WiFiServer server(80); // Set web server port number to 80
+String header; // Variable to store the HTTP request
 
 // SERVO DEF
 Servo ObjServo; // Make object of Servo motor from Servo library
 
 // OLED DEF
-// OLED 0.96" Display SSD1306
-#ifdef ESP32_GENERIC
-  #define OLED_SDA SDA // SDA ESP32 Generic
-  #define OLED_SCL SCL // SCL ESP32 Generic
-#endif
-#ifdef WEMOSLOLIN32OLED
-  #define OLED_SDA 5 // 5 for LoLin or SDA ESP32 default
-  #define OLED_SCL 4 // 4 for LoLin or 
-#endif
-SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL);
+SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL); // OLED 0.96" Display SSD1306
 
 // PREF DEF (EEPROM)
 Preferences preferences;
@@ -85,8 +85,6 @@ String positionopenString = "";
 String PulsesPerRevString = "";
 unsigned int trans = 0;
 String transString = "";
-
-bool DEBUG = true;
 
 /////////////////////////////////////////
 // FROM InterlinkKnight & el bodo es loco
@@ -449,7 +447,7 @@ void loop()
       trans = positionopenString.toInt();
     }
 
-    if (DEBUG)
+    if (debug)
     {
       Serial.print("RPM: ");
       Serial.print(RPMEngine);

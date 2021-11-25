@@ -33,3 +33,4 @@
 
 // SAFETY SETTINGS
 #define minrpmopen 1000 // minimum rpm for open vavle
+// #define DEBUG
