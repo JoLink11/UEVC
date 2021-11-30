@@ -29,11 +29,11 @@ UNIVERSAL EXHAUST VALVE CONTROL
 #include <Preferences.h>
 
 #ifdef ESP32_GENERIC
-  #define OLED_SDA SDA // SDA ESP32 Generic
-  #define OLED_SCL SCL // SCL ESP32 Generic
-  #define ServoGPIO 13 // define the GPIO pin with which servo is connected
-  #define LED_PIN 19 // LED for activation
-  #define interrupt_PIN 2 // REV-Signal to this PIN / PICKUP-Signal to this PIN
+  static const int OLED_SDA = SDA; // SDA ESP32 Generic
+  static const int OLED_SCL = SCL; // SCL ESP32 Generic
+  static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
+  static const int LED_PIN = 19; // LED for activation
+  static const int interrupt_PIN = 2; // REV-Signal to this PIN / PICKUP-Signal to this PIN
 #endif
 #ifdef WEMOSLOLIN32OLED
   static const int OLED_SDA = 5; // 5 for LoLin
