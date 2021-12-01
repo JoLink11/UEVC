@@ -1,0 +1,4 @@
+* Wemos LoLin32 OLED
+Picture from:
+https://camo.githubusercontent.com/9aca7d1b63b10c2492035a0e571dc3c5f60ab61f/68747470733a2f2f616530312e616c6963646e2e636f6d2f6b662f4854423134594b735270585858585853615858587136785846585858612e6a7067
+https://randomnerdtutorials.com/esp32-built-in-oled-ssd1306/
