@@ -1,6 +1,6 @@
 ## UEVC Universal Exhaust Valve Control ##
 
-The funtions of this divice will be to controlle a servo or a solnoid to open an exhautvalve on a twostroke engine.
+The funtions of this divice will be to control a servo or a solenoid to open an exhaust valve on a two stroke engine.
 
 STATUS: WORK IN PROGRESS!!!
 USE AT YOUR OWN RISK!
