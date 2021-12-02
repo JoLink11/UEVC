@@ -31,18 +31,20 @@ UNIVERSAL EXHAUST VALVE CONTROL
 #ifdef ESP32_GENERIC
   static const int OLED_SDA = SDA; // SDA ESP32 Generic
   static const int OLED_SCL = SCL; // SCL ESP32 Generic
-  static const int ServoGPIO = 13; // define the GPIO pin with which servo is connected
+  static const int Servo_0_GPIO = 13; // define the GPIO pin with which servo is connected
+  static const int Servo_1_GPIO = 12; // define the GPIO pin with which servo is connected
   static const int LED_PIN = 19; // LED for activation
   static const int interrupt_PIN = 2; // REV-Signal to this PIN / PICKUP-Signal to this PIN
 #endif
 #ifdef WEMOSLOLIN32OLED
   static const int OLED_SDA = 5; // 5 for LoLin
   static const int OLED_SCL = 4; // 4 for LoLin
-  static const int ServoGPIO = 15; // define the GPIO pin with which servo is connected
+  static const int Servo_0_GPIO = 15; // define the GPIO pin with which servo is connected
+  static const int Servo_1_GPIO = 13; // define the GPIO pin with which servo is connected
   static const int LED_PIN = 19; // LED for activation
   static const int interrupt_PIN = 2; // REV-Signal to this PIN / PICKUP-Signal to this PIN
 #endif
-#ifdef DEBUG
+#ifdef DEBUG_SERIAL
   //#define debug true
   static const bool debug = true;
 #else
@@ -54,7 +56,8 @@ WiFiServer server(80); // Set web server port number to 80
 String header; // Variable to store the HTTP request
 
 // SERVO DEF
-Servo ObjServo; // Make object of Servo motor from Servo library
+Servo Servo_0; // Make object of Servo motor from Servo library
+Servo Servo_1; // Make object of Servo motor from Servo library
 
 // OLED DEF
 SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL); // OLED 0.96" Display SSD1306
@@ -172,7 +175,8 @@ void setup()
   // Set outputs to LOW
   digitalWrite(LED_PIN, LOW);
 
-  ObjServo.attach(ServoGPIO); // it will attach the ObjServo to ServoGPIO pin which is 13 
+  Servo_0.attach(Servo_0_GPIO); // it will attach the Servo_0 to Servo_0_GPIO pin
+  Servo_1.attach(Servo_1_GPIO); // it will attach the Servo_1 to Servo_1_GPIO pin
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Setting AP (Access Point)…");
@@ -192,11 +196,14 @@ void setup()
   display.display();
   
   // Servo test
-  ObjServo.write(positioncloseString.toInt());
+  Servo_0.write(positioncloseString.toInt());
+  Servo_1.write(positioncloseString.toInt());
   delay(500);
-  ObjServo.write(positionopenString.toInt());
+  Servo_0.write(positionopenString.toInt());
+  Servo_1.write(positioncloseString.toInt());
   delay(500);
-  ObjServo.write(positioncloseString.toInt());
+  Servo_0.write(positioncloseString.toInt());
+  Servo_1.write(positioncloseString.toInt());
   delay(500);
 
   // FROM InterlinkKnight & el bodo es loco and midified for ESP32
@@ -435,7 +442,8 @@ void loop()
   if (RPMEngine <= rpmclose)
   { // unter diesem Wert bleibt der Auslassschieber geschlossen
     digitalWrite(LED_PIN,LOW); 
-    ObjServo.write(positioncloseString.toInt());
+    Servo_0.write(positioncloseString.toInt());
+    Servo_1.write(positioncloseString.toInt());
     trans = positioncloseString.toInt();
   }
   else if (RPMEngine > rpmclose && RPMEngine < rpmopenString.toInt())
@@ -444,13 +452,15 @@ void loop()
     { // zwischen öffnen und Schließen linearer Verlauf der Ventilöffnung
       digitalWrite(LED_PIN,HIGH);
       trans = int(map(RPMEngine, rpmclose, rpmopenString.toInt(), positioncloseString.toInt(), positionopenString.toInt()));
-      ObjServo.write(trans);
+      Servo_0.write(trans);
+      Servo_1.write(trans);
     }
   }
   else if (RPMEngine >= rpmopenString.toInt())
   { // über diesem Wert öffnet der Auslassschieber
     digitalWrite(LED_PIN,HIGH);  
-    ObjServo.write(positionopenString.toInt());
+    Servo_0.write(positionopenString.toInt());
+    Servo_1.write(positionopenString.toInt());
     trans = positionopenString.toInt();
   }
 
