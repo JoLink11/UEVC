@@ -1,3 +1,5 @@
+// SOURCE: https://www.zweitaktforum.de/wbb/forum/thread/16035654-rave-control-v2-universal-auslassteuerung-mit-modellbauservo/?postID=43437945#post43437945
+// Created by: el bodo es loco
 // ARDUINO CODE FOR TEST
 // Connect Arduino PIN 13 with ESP PIN 2 & ARDUINO GND to ESP32 GND
 #include <Arduino.h>
