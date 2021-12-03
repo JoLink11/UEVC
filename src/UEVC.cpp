@@ -41,7 +41,7 @@ UNIVERSAL EXHAUST VALVE CONTROL
   static const int OLED_SCL = 4; // 4 for LoLin
   static const int Servo_0_GPIO = 15; // define the GPIO pin with which servo is connected
   static const int Servo_1_GPIO = 13; // define the GPIO pin with which servo is connected
-  static const int LED_PIN = 19; // LED for activation
+  static const int LED_PIN = 16; // LED for activation
   static const int interrupt_PIN = 2; // REV-Signal to this PIN / PICKUP-Signal to this PIN
 #endif
 #ifdef DEBUG_SERIAL
