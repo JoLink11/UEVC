@@ -151,7 +151,7 @@ void setup()
 
   // Pref namespace UEVC
   preferences.begin("UEVC", false);
-  preferences.clear(); // if you want to clear all default values uncomment this line flash , comment and flash again!
+  // preferences.clear(); // if you want to clear all default values uncomment this line and flash the board, then comment out this line and flash again!
   // Load Vars
   rpmopenString = preferences.getUInt("rpm", rpm_default);
   thresholdString = preferences.getUInt("threshold", threshold_default);
